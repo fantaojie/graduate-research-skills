@@ -846,7 +846,23 @@ Default search scope: most recent 3 years and 30 papers unless the user requests
 ```markdown
 # Method Taxonomy
 
+## Method Family Chart
+
+Use Mermaid, a generated diagram, or a compact text tree to show the field-level method taxonomy.
+
+## Method Family Table
+
 | Method Family | Core Mechanism | Assumptions | Strengths | Weaknesses | Representative Papers | Best Use Cases |
+| --- | --- | --- | --- | --- | --- | --- |
+
+## Paper-To-Method Mapping
+
+| Paper | Year | Method Family | Specific Technique | Evidence | Notes |
+| --- | --- | --- | --- | --- | --- |
+
+## Method Comparison Matrix
+
+| Method Family | Input | Process | Output | Typical Metrics | Data/Compute Needs | Failure Cases |
 | --- | --- | --- | --- | --- | --- | --- |
 
 ## Selection Guidance
@@ -1502,19 +1518,21 @@ Create `skills/research-method-synthesis/SKILL.md` with:
 ```markdown
 ---
 name: research-method-synthesis
-description: Use when organizing research methods, model families, algorithms, pipelines, theoretical frameworks, or technical approaches across CS, AI, or engineering papers
+description: Use when organizing surveyed papers into method families, method taxonomies, technical-route charts, paper-to-method mapping tables, or method comparison tables across CS, AI, or engineering research
 ---
 
 # Research Method Synthesis
 
 ## Overview
 
-Synthesizes methods by mechanism, assumptions, strengths, weaknesses, and applicable scenarios rather than by paper name alone.
+Synthesizes methods from a surveyed literature set by mechanism, assumptions, strengths, weaknesses, representative papers, and applicable scenarios. The output should make the field's method landscape visible through charts and tables.
 
 ## When To Use
 
 - The user wants to understand a family of methods.
 - The user needs a taxonomy of models, algorithms, systems, or pipelines.
+- The user has a literature list or matrix and wants method categories.
+- The user wants papers organized by technical route.
 - The user needs method selection guidance for a research problem.
 
 ## Do Not Use When
@@ -1525,23 +1543,32 @@ Synthesizes methods by mechanism, assumptions, strengths, weaknesses, and applic
 
 ## Workflow
 
-1. Identify the target problem and method scope.
-2. Group methods by core mechanism or assumption.
-3. For each group, summarize inputs, process, outputs, strengths, weaknesses, and evidence.
-4. Compare method families across use cases and constraints.
-5. Produce method selection guidance and open technical questions.
+1. Identify the target problem, surveyed paper set, and method scope.
+2. Extract each paper's core method, inputs, outputs, evaluation target, and claimed contribution.
+3. Group methods by core mechanism, assumption, pipeline stage, or technical route.
+4. Build a method family chart using `../../shared/templates/method-taxonomy.md`; use Mermaid, a generated diagram, or a compact text tree.
+5. Create a paper-to-method mapping table linking each paper to method family, specific technique, and evidence.
+6. For each method family, summarize mechanism, assumptions, strengths, weaknesses, representative papers, and applicable scenarios.
+7. Compare method families across input, process, output, metrics, data/compute needs, and failure cases.
+8. Produce method selection guidance and open technical questions.
 
 ## Required Outputs
 
 - Method taxonomy using `../../shared/templates/method-taxonomy.md`.
+- Method family chart or taxonomy diagram.
+- Paper-to-method mapping table.
+- Method comparison matrix.
 - Mechanism and assumption table.
 - Strength and weakness comparison.
+- Representative papers for each method family.
 - Use-case guidance.
 - Open method questions.
 
 ## Quality Checks
 
 - Method families are grouped by principle.
+- Every major method family cites representative papers from the surveyed literature.
+- The output uses charts and tables rather than prose-only summaries.
 - Mechanism, implementation detail, and empirical effect are separate.
 - Evidence source and inference are labeled.
 - Selection guidance includes constraints.
@@ -1549,6 +1576,8 @@ Synthesizes methods by mechanism, assumptions, strengths, weaknesses, and applic
 ## Failure Modes
 
 - If methods are mixed across unrelated tasks, split the taxonomy by task.
+- If the user has not provided papers, ask for a literature list or use `research-literature-search` first.
+- If a paper fits multiple families, mark primary and secondary families.
 - If evidence is thin, state which comparisons are inferred.
 - If the user wants implementation details, identify which papers or codebases need inspection.
 ```
@@ -1926,7 +1955,7 @@ A GitHub-ready collection of independent skills for CS, AI, and engineering grad
 | `research-literature-search` | Finding recent papers, search logs, venue tiers, code links, and concise summaries |
 | `research-paper-reading` | Deep reading a single paper with translation, generated diagrams, code, formulas, experiment tables, and takeaways |
 | `research-literature-matrix` | Organizing papers with methods, venue tiers, code availability, paper types, and summaries |
-| `research-method-synthesis` | Synthesizing method families and technical approaches |
+| `research-method-synthesis` | Classifying surveyed papers into method families with charts and comparison tables |
 | `research-idea-mining` | Finding gaps, innovation points, and candidate contributions |
 | `research-experiment-design` | Designing experiments, baselines, metrics, and ablations |
 | `research-experiment-comparison` | Comparing results, baselines, ablations, and claims |

@@ -204,12 +204,15 @@ Quality checks:
 
 ### `research-method-synthesis`
 
-Use when the user needs to organize research methods, model families, algorithms, pipelines, theoretical frameworks, or technical approaches.
+Use when the user needs to organize research methods, model families, algorithms, pipelines, theoretical frameworks, or technical approaches from a set of surveyed papers.
 
 Outputs:
 
 - Method taxonomy
+- Method family diagram or taxonomy chart
+- Paper-to-method mapping table
 - Assumption and mechanism table
+- Method family explanation table
 - Strength/weakness comparison
 - Applicable scenarios
 - Method selection guidance
@@ -217,6 +220,8 @@ Outputs:
 Quality checks:
 
 - Groups methods by principle, not only by paper name.
+- Every major method family lists representative papers from the surveyed literature.
+- Uses charts and tables to make the method landscape readable.
 - Separates mechanism, implementation detail, and empirical effect.
 - Notes where evidence comes from literature versus inference.
 
