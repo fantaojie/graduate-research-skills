@@ -61,6 +61,7 @@ research-skills/
       topic-card.md
       proposal-outline.md
       paper-reading-notes.md
+      paper-deep-reading-report.md
       literature-search-results.md
       literature-matrix.md
       method-taxonomy.md
@@ -155,8 +156,12 @@ Use when the user provides or references a single paper and wants structured rea
 Outputs:
 
 - Paper metadata
+- Academic Chinese translation of the abstract and user-selected key passages, or a copyright-safe section-by-section Chinese paraphrase when full-text translation is not allowed
 - One-paragraph summary
 - Problem-method-result-contribution breakdown
+- Diagram-based explanation of the paper's idea, using Mermaid or text diagrams when useful
+- Formula and algorithm explanation with symbol definitions and intuitive interpretation
+- Deep reading report covering core idea, innovation points, experiment process, limitations, and transferable ideas
 - Assumptions and limitations
 - Reproducibility notes
 - Questions for follow-up reading
@@ -166,6 +171,8 @@ Quality checks:
 - Claims are grounded in the paper text.
 - Distinguishes author claims from reader interpretation.
 - Does not overstate novelty or results.
+- Explains the paper in accessible language without losing technical accuracy.
+- Does not output a full verbatim translation of a copyrighted paper; translates short user-provided excerpts or open-licensed text and otherwise provides structured paraphrase.
 
 ### `research-literature-matrix`
 

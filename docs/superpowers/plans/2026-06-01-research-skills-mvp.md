@@ -24,6 +24,7 @@ Create or modify these files:
 - Create: `shared/templates/topic-card.md`
 - Create: `shared/templates/proposal-outline.md`
 - Create: `shared/templates/paper-reading-notes.md`
+- Create: `shared/templates/paper-deep-reading-report.md`
 - Create: `shared/templates/literature-search-results.md`
 - Create: `shared/templates/literature-matrix.md`
 - Create: `shared/templates/method-taxonomy.md`
@@ -255,6 +256,7 @@ SHARED_FILES = [
     "shared/templates/topic-card.md",
     "shared/templates/proposal-outline.md",
     "shared/templates/paper-reading-notes.md",
+    "shared/templates/paper-deep-reading-report.md",
     "shared/templates/literature-search-results.md",
     "shared/templates/literature-matrix.md",
     "shared/templates/method-taxonomy.md",
@@ -718,7 +720,47 @@ Use:
 ## Evidence Labels
 ```
 
-- [ ] **Step 5: Create remaining templates**
+- [ ] **Step 5: Create `paper-deep-reading-report.md`**
+
+Use:
+
+```markdown
+# Paper Deep Reading Report
+
+## Academic Translation And Chinese Reading
+
+Translate the abstract and user-selected key passages in an academic Chinese style. For copyrighted full papers, provide section-by-section Chinese paraphrase instead of full verbatim translation.
+
+## Plain-Language Overview
+
+## Core Idea
+
+## Diagram
+
+Use Mermaid or a compact text diagram when useful.
+
+## Formula And Algorithm Explanation
+
+| Symbol/Step | Meaning | Intuitive Explanation |
+| --- | --- | --- |
+
+## Innovation Points
+
+## Experiment Process
+
+| Experiment | Purpose | Dataset/System | Baseline | Metric | Main Finding |
+| --- | --- | --- | --- | --- | --- |
+
+## Transferable Ideas For My Research
+
+## Limitations And Open Questions
+
+## Reproducibility Notes
+
+## Follow-Up Reading
+```
+
+- [ ] **Step 6: Create remaining templates**
 
 Create these files with the listed headings:
 
@@ -857,7 +899,7 @@ Default search scope: most recent 3 years and 30 papers unless the user requests
 ## Claim-Evidence Map
 ```
 
-- [ ] **Step 6: Run validator**
+- [ ] **Step 7: Run validator**
 
 Run:
 
@@ -867,7 +909,7 @@ python3 scripts/validate_research_skills.py
 
 Expected: FAIL listing the remaining missing repository files, shared rubrics, and skill files. The shared templates are no longer reported missing.
 
-- [ ] **Step 7: Commit shared templates**
+- [ ] **Step 8: Commit shared templates**
 
 Run:
 
@@ -1231,19 +1273,20 @@ Create `skills/research-paper-reading/SKILL.md` with:
 ```markdown
 ---
 name: research-paper-reading
-description: Use when analyzing a single paper, extracting structured reading notes, understanding method details, critiquing claims, or preparing implementation-oriented notes
+description: Use when analyzing a single paper, translating or paraphrasing key content, explaining methods with diagrams and formulas, extracting structured reading notes, critiquing claims, or preparing a deep reading report
 ---
 
 # Research Paper Reading
 
 ## Overview
 
-Turns one paper into grounded, structured notes that separate author claims, evidence, limitations, and reader interpretation.
+Turns one paper into a grounded deep-reading report. It explains the paper in academic Chinese and plain language, uses diagrams and formula walkthroughs where helpful, and separates author claims, evidence, limitations, and reader interpretation.
 
 ## When To Use
 
 - The user provides a paper, abstract, PDF text, URL, DOI, arXiv ID, or title.
-- The user wants method understanding, critique, or reproducibility notes.
+- The user wants academic Chinese translation, section-by-section Chinese reading, method understanding, critique, or reproducibility notes.
+- The user wants the core idea explained with diagrams, text, and formulas.
 - The user wants notes for later literature review or implementation.
 
 ## Do Not Use When
@@ -1251,20 +1294,30 @@ Turns one paper into grounded, structured notes that separate author claims, evi
 - The user needs a search strategy; use `research-literature-search`.
 - The user has many papers to compare; use `research-literature-matrix`.
 - The user expects claims beyond the provided or retrieved paper text.
+- The user asks for a full verbatim translation of a copyrighted paper; translate short user-provided excerpts or open-licensed text, otherwise provide structured Chinese paraphrase.
 
 ## Workflow
 
-1. Verify what paper content is available and what metadata is known.
+1. Verify what paper content is available, what metadata is known, and whether full-text translation is allowed.
 2. Extract metadata and label missing fields.
-3. Summarize the problem, method, results, contributions, assumptions, and limitations.
-4. Separate direct paper claims from interpretation.
-5. Extract implementation and reproducibility details.
-6. Generate follow-up questions and related-reading needs.
+3. Provide academic Chinese translation for the abstract and user-selected key passages. For copyrighted full papers, provide section-by-section Chinese paraphrase instead of full verbatim translation.
+4. Build a deep reading report using `../../shared/templates/paper-deep-reading-report.md`.
+5. Explain the paper's core idea with plain-language text and a diagram. Use Mermaid or compact text diagrams when useful.
+6. Explain formulas, losses, algorithms, or pipelines by defining symbols, stating the technical role, and giving intuitive interpretation.
+7. Summarize the problem, method, results, contributions, assumptions, and limitations.
+8. Extract experiment process: datasets/systems, baselines, metrics, ablations, main findings, and threats to validity.
+9. Identify transferable ideas for the user's research and separate them from author claims.
+10. Generate reproducibility notes, follow-up questions, and related-reading needs.
 
 ## Required Outputs
 
 - Reading notes using `../../shared/templates/paper-reading-notes.md`.
+- Deep reading report using `../../shared/templates/paper-deep-reading-report.md`.
+- Academic translation of abstract and selected key passages, or copyright-safe section-by-section Chinese paraphrase.
+- Diagram plus text explanation of the paper's idea.
+- Formula and algorithm explanation with symbol definitions and intuitive interpretation.
 - Claim-evidence list.
+- Core idea, innovation points, experiment process, and transferable ideas.
 - Limitation and assumption list.
 - Reproducibility notes.
 - Follow-up questions.
@@ -1275,12 +1328,19 @@ Turns one paper into grounded, structured notes that separate author claims, evi
 - Author claims and reader interpretation are separate.
 - Novelty and results are not overstated.
 - Unknown metadata is marked.
+- The explanation is accessible to a graduate student outside the narrow subtopic while preserving technical accuracy.
+- Formula explanations connect symbols to the paper's research problem.
+- Experiment descriptions include purpose, setup, baselines, metrics, and conclusions.
+- Translation respects copyright limits and does not reproduce a full copyrighted paper verbatim.
 
 ## Failure Modes
 
 - If only a title is available, ask for abstract, PDF, URL, DOI, or arXiv ID before deep reading.
 - If source access is partial, state which sections were not inspected.
 - If the paper is outside CS/AI/engineering, adapt the structure but preserve evidence labels.
+- If formulas are missing or informal, explain the method as a pipeline instead of inventing equations.
+- If experiments are not available in the source, mark the experiment process as missing and avoid guessing results.
+- If the user requests full-paper translation of copyrighted text, offer abstract/key-passage translation and full-paper Chinese paraphrase.
 ```
 
 - [ ] **Step 4: Create literature matrix skill**
@@ -1817,7 +1877,7 @@ A GitHub-ready collection of independent skills for CS, AI, and engineering grad
 | `research-topic-selection` | Choosing, narrowing, or comparing research topics |
 | `research-proposal` | Preparing opening reports, proposal defenses, or research plans |
 | `research-literature-search` | Finding recent papers, search logs, venue tiers, code links, and concise summaries |
-| `research-paper-reading` | Reading and critiquing a single paper |
+| `research-paper-reading` | Deep reading a single paper with translation, diagrams, formulas, experiments, and takeaways |
 | `research-literature-matrix` | Organizing papers with methods, venue tiers, code availability, paper types, and summaries |
 | `research-method-synthesis` | Synthesizing method families and technical approaches |
 | `research-idea-mining` | Finding gaps, innovation points, and candidate contributions |
