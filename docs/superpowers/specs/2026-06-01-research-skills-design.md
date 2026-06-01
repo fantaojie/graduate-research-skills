@@ -156,10 +156,13 @@ Use when the user provides or references a single paper and wants structured rea
 Outputs:
 
 - Paper metadata
+- Open-source code check performed before the deep reading when the paper mentions code or an official artifact may exist
+- Official or likely-official repository URL, key code entry points, and artifact status when available
 - Academic Chinese translation of the abstract and user-selected key passages, or a copyright-safe section-by-section Chinese paraphrase when full-text translation is not allowed
 - One-paragraph summary
 - Problem-method-result-contribution breakdown
 - Diagram-based explanation of the paper's idea, using Mermaid or text diagrams when useful
+- Code-level explanation of the core method, using repository file/function pointers or concise pseudocode when code exists
 - Formula and algorithm explanation with symbol definitions and intuitive interpretation
 - Deep reading report covering core idea, innovation points, experiment process, limitations, and transferable ideas
 - Assumptions and limitations
@@ -171,6 +174,8 @@ Quality checks:
 - Claims are grounded in the paper text.
 - Distinguishes author claims from reader interpretation.
 - Does not overstate novelty or results.
+- Checks open-source code before explaining implementation details; marks `No code found` or `Not checked` instead of guessing.
+- Connects the core innovation to diagram, code or pseudocode, and mathematical principle.
 - Explains the paper in accessible language without losing technical accuracy.
 - Does not output a full verbatim translation of a copyrighted paper; translates short user-provided excerpts or open-licensed text and otherwise provides structured paraphrase.
 

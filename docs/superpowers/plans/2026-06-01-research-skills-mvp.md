@@ -735,9 +735,30 @@ Translate the abstract and user-selected key passages in an academic Chinese sty
 
 ## Core Idea
 
+## Code Availability First Check
+
+| Field | Value |
+| --- | --- |
+| Official code status |  |
+| Repository URL |  |
+| Artifact URL |  |
+| Key entry files |  |
+| Key functions/classes |  |
+| Code evidence source |  |
+
 ## Diagram
 
 Use Mermaid or a compact text diagram when useful.
+
+## Code-Level Explanation
+
+Map the core innovation to repository files, functions, modules, or concise pseudocode. If no code is available, mark `No code found` or `Not checked`.
+
+```text
+Input:
+Core steps:
+Output:
+```
 
 ## Formula And Algorithm Explanation
 
@@ -1273,20 +1294,20 @@ Create `skills/research-paper-reading/SKILL.md` with:
 ```markdown
 ---
 name: research-paper-reading
-description: Use when analyzing a single paper, translating or paraphrasing key content, explaining methods with diagrams and formulas, extracting structured reading notes, critiquing claims, or preparing a deep reading report
+description: Use when analyzing a single paper, checking open-source code, translating or paraphrasing key content, explaining methods with diagrams, code, and formulas, extracting structured reading notes, critiquing claims, or preparing a deep reading report
 ---
 
 # Research Paper Reading
 
 ## Overview
 
-Turns one paper into a grounded deep-reading report. It explains the paper in academic Chinese and plain language, uses diagrams and formula walkthroughs where helpful, and separates author claims, evidence, limitations, and reader interpretation.
+Turns one paper into a grounded deep-reading report. It first checks whether official code or artifacts exist, then explains the paper in academic Chinese and plain language using diagrams, code or pseudocode, and formula walkthroughs where helpful.
 
 ## When To Use
 
 - The user provides a paper, abstract, PDF text, URL, DOI, arXiv ID, or title.
 - The user wants academic Chinese translation, section-by-section Chinese reading, method understanding, critique, or reproducibility notes.
-- The user wants the core idea explained with diagrams, text, and formulas.
+- The user wants the core idea explained with diagrams, code, text, and formulas.
 - The user wants notes for later literature review or implementation.
 
 ## Do Not Use When
@@ -1299,22 +1320,27 @@ Turns one paper into a grounded deep-reading report. It explains the paper in ac
 ## Workflow
 
 1. Verify what paper content is available, what metadata is known, and whether full-text translation is allowed.
-2. Extract metadata and label missing fields.
-3. Provide academic Chinese translation for the abstract and user-selected key passages. For copyrighted full papers, provide section-by-section Chinese paraphrase instead of full verbatim translation.
-4. Build a deep reading report using `../../shared/templates/paper-deep-reading-report.md`.
-5. Explain the paper's core idea with plain-language text and a diagram. Use Mermaid or compact text diagrams when useful.
-6. Explain formulas, losses, algorithms, or pipelines by defining symbols, stating the technical role, and giving intuitive interpretation.
-7. Summarize the problem, method, results, contributions, assumptions, and limitations.
-8. Extract experiment process: datasets/systems, baselines, metrics, ablations, main findings, and threats to validity.
-9. Identify transferable ideas for the user's research and separate them from author claims.
-10. Generate reproducibility notes, follow-up questions, and related-reading needs.
+2. Before deep explanation, check whether the paper has official code, artifacts, project pages, or reproduction repositories. Use `../../shared/references/venue-and-code-integrity.md` to label code status.
+3. If code exists, identify repository URL, artifact URL, key entry files, and key functions or classes. If not, mark `No code found`; if source access is unavailable, mark `Not checked`.
+4. Extract metadata and label missing fields.
+5. Provide academic Chinese translation for the abstract and user-selected key passages. For copyrighted full papers, provide section-by-section Chinese paraphrase instead of full verbatim translation.
+6. Build a deep reading report using `../../shared/templates/paper-deep-reading-report.md`.
+7. Explain the paper's core idea with plain-language text and a diagram. Use Mermaid or compact text diagrams when useful.
+8. Explain the core innovation through code or pseudocode, mapping concepts to repository files/functions when code is available.
+9. Explain formulas, losses, algorithms, or pipelines by defining symbols, stating the technical role, and giving intuitive interpretation.
+10. Summarize the problem, method, results, contributions, assumptions, and limitations.
+11. Extract experiment process: datasets/systems, baselines, metrics, ablations, main findings, and threats to validity.
+12. Identify transferable ideas for the user's research and separate them from author claims.
+13. Generate reproducibility notes, follow-up questions, and related-reading needs.
 
 ## Required Outputs
 
 - Reading notes using `../../shared/templates/paper-reading-notes.md`.
 - Deep reading report using `../../shared/templates/paper-deep-reading-report.md`.
+- Code availability first check with repository URL, artifact URL, key files, and key functions/classes when available.
 - Academic translation of abstract and selected key passages, or copyright-safe section-by-section Chinese paraphrase.
 - Diagram plus text explanation of the paper's idea.
+- Code-level explanation or pseudocode for the core innovation.
 - Formula and algorithm explanation with symbol definitions and intuitive interpretation.
 - Claim-evidence list.
 - Core idea, innovation points, experiment process, and transferable ideas.
@@ -1328,6 +1354,8 @@ Turns one paper into a grounded deep-reading report. It explains the paper in ac
 - Author claims and reader interpretation are separate.
 - Novelty and results are not overstated.
 - Unknown metadata is marked.
+- Code availability is checked before implementation-level explanation.
+- Core innovation is explained through diagram, code or pseudocode, and mathematical principle.
 - The explanation is accessible to a graduate student outside the narrow subtopic while preserving technical accuracy.
 - Formula explanations connect symbols to the paper's research problem.
 - Experiment descriptions include purpose, setup, baselines, metrics, and conclusions.
@@ -1339,6 +1367,8 @@ Turns one paper into a grounded deep-reading report. It explains the paper in ac
 - If source access is partial, state which sections were not inspected.
 - If the paper is outside CS/AI/engineering, adapt the structure but preserve evidence labels.
 - If formulas are missing or informal, explain the method as a pipeline instead of inventing equations.
+- If official code exists but cannot be inspected, include the URL and mark implementation details as not inspected.
+- If code is unavailable, provide pseudocode and state that it is an interpretation rather than repository-grounded code.
 - If experiments are not available in the source, mark the experiment process as missing and avoid guessing results.
 - If the user requests full-paper translation of copyrighted text, offer abstract/key-passage translation and full-paper Chinese paraphrase.
 ```
