@@ -56,10 +56,12 @@ research-skills/
     references/
       cs-ai-research-principles.md
       citation-integrity.md
+      venue-and-code-integrity.md
     templates/
       topic-card.md
       proposal-outline.md
       paper-reading-notes.md
+      literature-search-results.md
       literature-matrix.md
       method-taxonomy.md
       idea-gap-analysis.md
@@ -122,6 +124,13 @@ Quality checks:
 
 Use when the user needs literature search strategy, keywords, database planning, search expansion, or paper collection for CS/AI/engineering topics.
 
+Default behavior when the user gives a topic:
+
+- Search papers from the most recent 3 years unless the prompt specifies another time range.
+- Return 30 papers by default unless the prompt specifies another count.
+- First search for recent survey/review papers from roughly the most recent year, use them to map subtopics and terminology, then expand to primary research papers.
+- Prioritize top conferences and journals when relevance is comparable.
+
 Outputs:
 
 - Search question
@@ -130,12 +139,14 @@ Outputs:
 - Inclusion/exclusion criteria
 - Search log template
 - Seed paper list if browsing/search tools are available
+- Literature search result table with title, year, venue, venue tier, impact factor when available, open-source status, code URL, paper type, and a summary of no more than 300 Chinese characters per paper
 
 Quality checks:
 
 - Separates exploratory search from systematic search.
 - Records search strings and source databases.
 - Marks unverified metadata clearly.
+- Venue tier, impact factor, CCF class, and open-source URL are verified from current sources when possible, with unknowns labeled instead of guessed.
 
 ### `research-paper-reading`
 
@@ -167,12 +178,14 @@ Outputs:
 - Method/dataset/metric comparison
 - Chronological development map
 - Missing-evidence list
+- Publication and artifact fields: year, journal/conference tier, SCI/JCR quartile if applicable, CCF class if applicable, impact factor if available, open-source status, code URL, paper type, and concise summary
 
 Quality checks:
 
 - Compares across papers rather than listing summaries.
 - Uses stable columns suitable for later writing.
 - Makes unknown fields visible instead of filling guesses.
+- Keeps each paper summary under 300 Chinese characters unless the user requests a different length.
 
 ### `research-method-synthesis`
 
@@ -272,6 +285,7 @@ Shared references should hold reusable principles that many skills need:
 
 - `cs-ai-research-principles.md`: research questions, contribution types, empirical rigor, reproducibility expectations, and common CS/AI/engineering paper structures.
 - `citation-integrity.md`: citation verification rules, anti-hallucination behavior, source confidence labels, and how to mark missing evidence.
+- `venue-and-code-integrity.md`: rules for checking publication tier, SCI/JCR quartile, CCF class, impact factor, open-source availability, and code URLs.
 
 Shared templates should be lightweight Markdown files that users can reuse directly. They should avoid long explanations and focus on tables, headings, and fields.
 

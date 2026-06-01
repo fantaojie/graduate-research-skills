@@ -20,9 +20,11 @@ Create or modify these files:
 - Create: `tests/test_validate_research_skills.py` - unit tests for the validator.
 - Create: `shared/references/cs-ai-research-principles.md` - reusable CS/AI/engineering research principles.
 - Create: `shared/references/citation-integrity.md` - citation and evidence integrity rules.
+- Create: `shared/references/venue-and-code-integrity.md` - venue tier, impact factor, CCF, and open-source verification rules.
 - Create: `shared/templates/topic-card.md`
 - Create: `shared/templates/proposal-outline.md`
 - Create: `shared/templates/paper-reading-notes.md`
+- Create: `shared/templates/literature-search-results.md`
 - Create: `shared/templates/literature-matrix.md`
 - Create: `shared/templates/method-taxonomy.md`
 - Create: `shared/templates/idea-gap-analysis.md`
@@ -249,9 +251,11 @@ EXPECTED_SKILLS = [
 SHARED_FILES = [
     "shared/references/cs-ai-research-principles.md",
     "shared/references/citation-integrity.md",
+    "shared/references/venue-and-code-integrity.md",
     "shared/templates/topic-card.md",
     "shared/templates/proposal-outline.md",
     "shared/templates/paper-reading-notes.md",
+    "shared/templates/literature-search-results.md",
     "shared/templates/literature-matrix.md",
     "shared/templates/method-taxonomy.md",
     "shared/templates/idea-gap-analysis.md",
@@ -421,6 +425,7 @@ Expected: commit succeeds.
 **Files:**
 - Create: `shared/references/cs-ai-research-principles.md`
 - Create: `shared/references/citation-integrity.md`
+- Create: `shared/references/venue-and-code-integrity.md`
 
 - [ ] **Step 1: Create shared reference directory**
 
@@ -515,7 +520,61 @@ Before using a citation in a final artifact, verify:
 - The exact claim supported by the citation
 ```
 
-- [ ] **Step 4: Run validator**
+- [ ] **Step 4: Create `venue-and-code-integrity.md`**
+
+Create `shared/references/venue-and-code-integrity.md` with:
+
+```markdown
+# Venue And Code Integrity
+
+## Publication Quality Fields
+
+When a literature skill reports publication quality, include the best available fields:
+
+- Venue or journal name
+- Venue type: conference, journal, preprint, workshop, magazine, repository, or unknown
+- SCI/JCR quartile for journals when applicable
+- CCF class for computer science conferences and journals when applicable
+- Impact factor when available
+- Metric source and access date
+
+## Verification Rules
+
+- Treat journal quartile, impact factor, and CCF class as time-sensitive metadata.
+- Verify current values from authoritative or clearly named sources when browsing is available.
+- If a metric cannot be verified, write `Unknown` rather than guessing.
+- If the paper is an arXiv preprint with no peer-reviewed venue, mark the venue tier as `Preprint`.
+- Prefer top conferences and journals only when the paper is relevant to the user's topic.
+
+## Open-Source Fields
+
+Report code and artifact status as one of:
+
+- Official code available
+- Unofficial reproduction available
+- Dataset or benchmark available
+- Artifact mentioned but unavailable
+- No code found
+- Not checked
+
+When code is available, include the repository URL and whether it appears official. Prefer links from the paper, project page, author profile, Papers With Code, or the official organization.
+
+## Paper Type Labels
+
+Use one or more labels:
+
+- Survey or review
+- Method innovation
+- Dataset or benchmark
+- System or tool
+- Empirical evaluation
+- Theory or analysis
+- Application study
+- Reproducibility or replication
+- Position or perspective
+```
+
+- [ ] **Step 5: Run validator**
 
 Run:
 
@@ -523,14 +582,14 @@ Run:
 python3 scripts/validate_research_skills.py
 ```
 
-Expected: FAIL listing the remaining missing repository files, shared templates, shared rubrics, and skill files. The two shared references are no longer reported missing.
+Expected: FAIL listing the remaining missing repository files, shared templates, shared rubrics, and skill files. The three shared references are no longer reported missing.
 
-- [ ] **Step 5: Commit shared references**
+- [ ] **Step 6: Commit shared references**
 
 Run:
 
 ```bash
-git add shared/references/cs-ai-research-principles.md shared/references/citation-integrity.md
+git add shared/references/cs-ai-research-principles.md shared/references/citation-integrity.md shared/references/venue-and-code-integrity.md
 git commit -m "docs: add shared research references"
 ```
 
@@ -663,17 +722,44 @@ Use:
 
 Create these files with the listed headings:
 
+`literature-search-results.md`
+
+```markdown
+# Literature Search Results
+
+Default search scope: most recent 3 years and 30 papers unless the user requests another range or count.
+
+## Review-First Search Pass
+
+| Review Paper | Year | Venue/Journal | Tier/Quartile/CCF | Role In Search Expansion | Evidence Status |
+| --- | --- | --- | --- | --- | --- |
+
+## Paper Results
+
+| Paper | Year | Venue/Journal | Tier/Quartile/CCF | Impact Factor | Open Source Status | Code URL | Paper Type | Summary <=300 Chinese Characters | Evidence Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+## Search Log
+
+| Source | Query | Date | Filters | Notes |
+| --- | --- | --- | --- | --- |
+
+## Missing Or Unverified Metadata
+```
+
 `literature-matrix.md`
 
 ```markdown
 # Literature Matrix
 
-| Paper | Problem | Method | Dataset/System | Metrics | Main Result | Limitation | Use In My Work | Evidence Status |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Paper | Year | Venue/Journal | Tier/Quartile/CCF | Impact Factor | Open Source Status | Code URL | Paper Type | Problem | Method | Dataset/System | Metrics | Main Result | Limitation | Summary <=300 Chinese Characters | Use In My Work | Evidence Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ## Theme Clusters
 
 ## Chronological Development
+
+## Open-Source Artifact Notes
 
 ## Missing Evidence
 ```
@@ -1083,14 +1169,14 @@ description: Use when planning literature search, keyword expansion, database se
 
 ## Overview
 
-Creates a traceable search strategy for exploratory or systematic literature discovery. It separates search planning from unsupported paper claims.
+Creates a traceable search strategy for exploratory or systematic literature discovery. When the user gives a topic, it defaults to the most recent 3 years and 30 papers unless the user specifies another time range or count.
 
 ## When To Use
 
 - The user needs keywords, synonyms, and search strings.
 - The user needs databases or sources for CS/AI/engineering literature.
 - The user wants inclusion and exclusion criteria.
-- The user wants a search log or seed paper collection.
+- The user wants a search log, seed paper collection, or recent-paper table with venue tier and code availability.
 
 ## Do Not Use When
 
@@ -1100,12 +1186,13 @@ Creates a traceable search strategy for exploratory or systematic literature dis
 
 ## Workflow
 
-1. Clarify research question, field, target venues, time range, and paper types.
-2. Build keyword groups: task, method, domain, dataset/system, metric, and synonyms.
-3. Create search strings for broad search, targeted search, and backward/forward snowballing.
-4. Define inclusion and exclusion criteria.
-5. Create a search log with source, query, date, filters, and notes.
-6. If browsing/search tools are available, collect seed papers and label metadata confidence.
+1. Clarify research question, field, target venues, time range, paper count, and paper types. Use the most recent 3 years and 30 papers by default.
+2. First search for survey or review papers from roughly the most recent year. Use the best recent reviews to identify terminology, subtopics, benchmark datasets, method families, and important primary papers.
+3. Build keyword groups: task, method, domain, dataset/system, metric, and synonyms.
+4. Create search strings for broad search, targeted search, and backward/forward snowballing from review papers.
+5. Define inclusion and exclusion criteria, prioritizing relevant top conferences and journals when possible.
+6. If browsing/search tools are available, collect papers and verify metadata, venue tier, impact factor, CCF class, open-source status, and code URL using `../../shared/references/venue-and-code-integrity.md`.
+7. Create a search log with source, query, date, filters, and notes.
 
 ## Required Outputs
 
@@ -1114,6 +1201,8 @@ Creates a traceable search strategy for exploratory or systematic literature dis
 - Source/database plan.
 - Inclusion and exclusion criteria.
 - Search log table.
+- Literature search result table using `../../shared/templates/literature-search-results.md`.
+- For each paper: year, venue or journal, venue tier, SCI/JCR quartile if applicable, CCF class if applicable, impact factor when available, open-source status, code URL, paper type, and a summary no longer than 300 Chinese characters.
 - Seed paper list with evidence labels when sources are available.
 
 ## Quality Checks
@@ -1122,12 +1211,17 @@ Creates a traceable search strategy for exploratory or systematic literature dis
 - Exploratory and systematic searches are not mixed silently.
 - Metadata confidence is labeled.
 - Missing source access is stated.
+- Venue tier, impact factor, CCF class, and open-source links are verified when possible and marked `Unknown` when not verified.
+- Review papers guide expansion but do not replace primary-paper verification.
+- The result set respects the requested paper count and time range, or explains why fewer papers were found.
 
 ## Failure Modes
 
 - If the topic is broad, ask for subfield, task, and target contribution type.
 - If no search access exists, provide strings and a log template instead of inventing papers.
 - If results are too noisy, split queries by task, method, and application domain.
+- If a paper has no identifiable code, mark `No code found`; if code is not checked, mark `Not checked`.
+- If the user asks for journal quartile, CCF class, or impact factor without current source access, mark the field `Unknown` and state that it requires verification.
 ```
 
 - [ ] **Step 3: Create paper reading skill**
@@ -1203,11 +1297,12 @@ description: Use when organizing multiple papers into a literature matrix, compa
 
 ## Overview
 
-Organizes multiple papers into comparison-ready structures for synthesis, related work, gap analysis, and research planning.
+Organizes multiple papers into comparison-ready structures for synthesis, related work, gap analysis, and research planning. It preserves publication quality, open-source, paper-type, and concise-summary fields from literature search results.
 
 ## When To Use
 
 - The user has several papers and needs a comparison table.
+- The user has search results and needs publication tier, open-source status, paper type, and summaries organized in one matrix.
 - The user wants theme clusters or chronological development.
 - The user is preparing related work or a survey-style summary.
 
@@ -1221,16 +1316,19 @@ Organizes multiple papers into comparison-ready structures for synthesis, relate
 
 1. List papers and mark available metadata.
 2. Choose matrix columns based on the research question.
-3. Fill comparable fields: problem, method, dataset/system, metrics, result, limitation, and relevance.
-4. Cluster papers by theme, method family, task, or chronology.
-5. Identify missing evidence and papers requiring deeper reading.
-6. Produce writing-ready related work angles.
+3. Preserve bibliographic and artifact fields: year, venue or journal, tier, SCI/JCR quartile, CCF class, impact factor, open-source status, code URL, paper type, and evidence status.
+4. Fill comparable research fields: problem, method, dataset/system, metrics, result, limitation, concise summary, and relevance.
+5. Keep each paper summary no longer than 300 Chinese characters unless the user requests another length.
+6. Cluster papers by theme, method family, task, paper type, venue level, or chronology.
+7. Identify missing evidence and papers requiring deeper reading.
+8. Produce writing-ready related work angles.
 
 ## Required Outputs
 
 - Literature matrix using `../../shared/templates/literature-matrix.md`.
 - Theme clusters.
 - Chronological development map.
+- Venue-tier and open-source artifact notes.
 - Missing-evidence list.
 - Related-work positioning notes.
 
@@ -1240,12 +1338,15 @@ Organizes multiple papers into comparison-ready structures for synthesis, relate
 - Unknown fields remain visible.
 - Columns are stable enough for later writing.
 - Evidence status is labeled.
+- Publication tier and open-source fields follow `../../shared/references/venue-and-code-integrity.md`.
+- Summaries stay within the requested length limit.
 
 ## Failure Modes
 
 - If paper metadata is incomplete, create the matrix and mark missing fields.
 - If papers are too diverse, split them into clusters before comparison.
 - If the user asks for conclusions unsupported by the papers, label them as hypotheses.
+- If venue tier, impact factor, CCF class, or code status cannot be verified, mark it `Unknown` rather than guessing.
 ```
 
 - [ ] **Step 5: Run validator**
@@ -1715,9 +1816,9 @@ A GitHub-ready collection of independent skills for CS, AI, and engineering grad
 | --- | --- |
 | `research-topic-selection` | Choosing, narrowing, or comparing research topics |
 | `research-proposal` | Preparing opening reports, proposal defenses, or research plans |
-| `research-literature-search` | Planning literature search and search logs |
+| `research-literature-search` | Finding recent papers, search logs, venue tiers, code links, and concise summaries |
 | `research-paper-reading` | Reading and critiquing a single paper |
-| `research-literature-matrix` | Organizing and comparing multiple papers |
+| `research-literature-matrix` | Organizing papers with methods, venue tiers, code availability, paper types, and summaries |
 | `research-method-synthesis` | Synthesizing method families and technical approaches |
 | `research-idea-mining` | Finding gaps, innovation points, and candidate contributions |
 | `research-experiment-design` | Designing experiments, baselines, metrics, and ablations |
