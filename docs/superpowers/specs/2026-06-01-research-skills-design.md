@@ -161,9 +161,10 @@ Outputs:
 - Academic Chinese translation of the abstract and user-selected key passages, or a copyright-safe section-by-section Chinese paraphrase when full-text translation is not allowed
 - One-paragraph summary
 - Problem-method-result-contribution breakdown
-- Diagram-based explanation of the paper's idea, using Mermaid or text diagrams when useful
+- Generated principle diagram for the paper's core idea, using the `imagegen` skill by preference when visual explanation helps reading; Mermaid or text diagrams are fallbacks when image generation is unavailable or the diagram must be deterministic
 - Code-level explanation of the core method, using repository file/function pointers or concise pseudocode when code exists
 - Formula and algorithm explanation with symbol definitions and intuitive interpretation
+- Experiment tables covering datasets, settings, baselines, metrics, key results, and conclusions
 - Deep reading report covering core idea, innovation points, experiment process, limitations, and transferable ideas
 - Assumptions and limitations
 - Reproducibility notes
@@ -176,6 +177,8 @@ Quality checks:
 - Does not overstate novelty or results.
 - Checks open-source code before explaining implementation details; marks `No code found` or `Not checked` instead of guessing.
 - Connects the core innovation to diagram, code or pseudocode, and mathematical principle.
+- Makes generated principle diagrams large, readable, and original rather than copying copyrighted paper figures; original paper figures should be referenced by figure number and source.
+- Presents experimental data and results as tables, with missing or unverified values marked explicitly.
 - Explains the paper in accessible language without losing technical accuracy.
 - Does not output a full verbatim translation of a copyrighted paper; translates short user-provided excerpts or open-licensed text and otherwise provides structured paraphrase.
 

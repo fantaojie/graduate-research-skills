@@ -746,9 +746,18 @@ Translate the abstract and user-selected key passages in an academic Chinese sty
 | Key functions/classes |  |
 | Code evidence source |  |
 
-## Diagram
+## Generated Principle Diagram
 
-Use Mermaid or a compact text diagram when useful.
+Prefer the `imagegen` skill for a large, readable, original teaching diagram when visual explanation helps. Do not copy copyrighted paper figures; cite original figure numbers separately when useful.
+
+| Field | Value |
+| --- | --- |
+| Diagram purpose |  |
+| Imagegen prompt |  |
+| Saved image path or inline image |  |
+| Original paper figures referenced |  |
+
+If image generation is unavailable, use Mermaid or a compact text diagram and state the fallback.
 
 ## Code-Level Explanation
 
@@ -771,6 +780,11 @@ Output:
 
 | Experiment | Purpose | Dataset/System | Baseline | Metric | Main Finding |
 | --- | --- | --- | --- | --- | --- |
+
+## Experiment Data Tables
+
+| Table/Figure | Dataset | Setting | Compared Methods | Metric | Reported Values | Interpretation | Evidence Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 
 ## Transferable Ideas For My Research
 
@@ -1307,7 +1321,7 @@ Turns one paper into a grounded deep-reading report. It first checks whether off
 
 - The user provides a paper, abstract, PDF text, URL, DOI, arXiv ID, or title.
 - The user wants academic Chinese translation, section-by-section Chinese reading, method understanding, critique, or reproducibility notes.
-- The user wants the core idea explained with diagrams, code, text, and formulas.
+- The user wants the core idea explained with a generated principle diagram, code, text, and formulas.
 - The user wants notes for later literature review or implementation.
 
 ## Do Not Use When
@@ -1325,11 +1339,11 @@ Turns one paper into a grounded deep-reading report. It first checks whether off
 4. Extract metadata and label missing fields.
 5. Provide academic Chinese translation for the abstract and user-selected key passages. For copyrighted full papers, provide section-by-section Chinese paraphrase instead of full verbatim translation.
 6. Build a deep reading report using `../../shared/templates/paper-deep-reading-report.md`.
-7. Explain the paper's core idea with plain-language text and a diagram. Use Mermaid or compact text diagrams when useful.
+7. Explain the paper's core idea with plain-language text and a large, readable generated principle diagram. Prefer the `imagegen` skill for an original teaching diagram when image generation is available; if unavailable, use Mermaid or compact text diagrams and state the fallback.
 8. Explain the core innovation through code or pseudocode, mapping concepts to repository files/functions when code is available.
 9. Explain formulas, losses, algorithms, or pipelines by defining symbols, stating the technical role, and giving intuitive interpretation.
 10. Summarize the problem, method, results, contributions, assumptions, and limitations.
-11. Extract experiment process: datasets/systems, baselines, metrics, ablations, main findings, and threats to validity.
+11. Extract experiment process as tables: datasets/systems, settings, baselines, metrics, ablations, reported values, main findings, and threats to validity.
 12. Identify transferable ideas for the user's research and separate them from author claims.
 13. Generate reproducibility notes, follow-up questions, and related-reading needs.
 
@@ -1339,9 +1353,10 @@ Turns one paper into a grounded deep-reading report. It first checks whether off
 - Deep reading report using `../../shared/templates/paper-deep-reading-report.md`.
 - Code availability first check with repository URL, artifact URL, key files, and key functions/classes when available.
 - Academic translation of abstract and selected key passages, or copyright-safe section-by-section Chinese paraphrase.
-- Diagram plus text explanation of the paper's idea.
+- Generated principle diagram plus text explanation of the paper's idea; include the imagegen prompt and image path when an image is generated.
 - Code-level explanation or pseudocode for the core innovation.
 - Formula and algorithm explanation with symbol definitions and intuitive interpretation.
+- Experiment process and reported results in tables.
 - Claim-evidence list.
 - Core idea, innovation points, experiment process, and transferable ideas.
 - Limitation and assumption list.
@@ -1355,10 +1370,11 @@ Turns one paper into a grounded deep-reading report. It first checks whether off
 - Novelty and results are not overstated.
 - Unknown metadata is marked.
 - Code availability is checked before implementation-level explanation.
-- Core innovation is explained through diagram, code or pseudocode, and mathematical principle.
+- Core innovation is explained through generated diagram, code or pseudocode, and mathematical principle.
+- Generated diagrams are original, large, readable, and educational; original paper figures are referenced by figure number and source rather than copied.
 - The explanation is accessible to a graduate student outside the narrow subtopic while preserving technical accuracy.
 - Formula explanations connect symbols to the paper's research problem.
-- Experiment descriptions include purpose, setup, baselines, metrics, and conclusions.
+- Experiment descriptions include purpose, setup, baselines, metrics, reported values, and conclusions in tables.
 - Translation respects copyright limits and does not reproduce a full copyrighted paper verbatim.
 
 ## Failure Modes
@@ -1367,6 +1383,7 @@ Turns one paper into a grounded deep-reading report. It first checks whether off
 - If source access is partial, state which sections were not inspected.
 - If the paper is outside CS/AI/engineering, adapt the structure but preserve evidence labels.
 - If formulas are missing or informal, explain the method as a pipeline instead of inventing equations.
+- If `imagegen` is unavailable or inappropriate for the diagram, provide a Mermaid/text fallback and state why.
 - If official code exists but cannot be inspected, include the URL and mark implementation details as not inspected.
 - If code is unavailable, provide pseudocode and state that it is an interpretation rather than repository-grounded code.
 - If experiments are not available in the source, mark the experiment process as missing and avoid guessing results.
@@ -1907,7 +1924,7 @@ A GitHub-ready collection of independent skills for CS, AI, and engineering grad
 | `research-topic-selection` | Choosing, narrowing, or comparing research topics |
 | `research-proposal` | Preparing opening reports, proposal defenses, or research plans |
 | `research-literature-search` | Finding recent papers, search logs, venue tiers, code links, and concise summaries |
-| `research-paper-reading` | Deep reading a single paper with translation, diagrams, formulas, experiments, and takeaways |
+| `research-paper-reading` | Deep reading a single paper with translation, generated diagrams, code, formulas, experiment tables, and takeaways |
 | `research-literature-matrix` | Organizing papers with methods, venue tiers, code availability, paper types, and summaries |
 | `research-method-synthesis` | Synthesizing method families and technical approaches |
 | `research-idea-mining` | Finding gaps, innovation points, and candidate contributions |
