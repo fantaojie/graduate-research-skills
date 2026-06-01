@@ -1,6 +1,12 @@
 # Graduate Research Skills
 
-This repository contains a GitHub-ready collection of modular research skills for graduate students and research assistants in computer science, AI, and engineering.
+[English](README.md) | [简体中文](README.zh-CN.md)
+
+This repository contains a GitHub-ready collection of modular research skills for Chinese-speaking graduate students and research assistants in computer science, AI, engineering, computer application, and related majors.
+
+The skill set is built for the real graduation workflow of many Mainland China computer-related graduate programs, where students often need two smaller research papers plus a main thesis or dissertation. It covers the path from topic selection and proposal writing to literature search, paper reading, method synthesis, experiment design, result comparison, and paper organization, helping protect your graduation journey one research step at a time.
+
+This is not a one-click paper generator. It is an interactive research companion: it asks, guides, checks, organizes, and helps you think through computer-related research. The project will keep improving over time. Everyone is welcome to use it, follow it, and contribute ideas.
 
 Each skill is an independent `SKILL.md` directory under `skills/`. Shared templates, rubrics, and integrity references live under `shared/` so the skills stay compact while still producing structured research artifacts.
 
@@ -51,4 +57,3 @@ These skills are designed to be research assistants, not citation generators. Th
 - Mark unknown metadata explicitly.
 - Separate verified evidence from inference.
 - Prefer current source checks for recent literature, venue tiers, impact factors, CCF class, and open-source status.
-
