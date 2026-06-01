@@ -1,0 +1,1886 @@
+# Research Skills MVP Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a GitHub-ready MVP collection of 10 independently installable CS/AI/engineering graduate research skills with shared templates, rubrics, references, extension space, and validation checks.
+
+**Architecture:** The repository uses a flat `skills/` directory for MVP skills, a `shared/` directory for reusable research templates and integrity rules, and an `extensions/` directory for future skill candidates. A small Python standard-library validator checks structure, frontmatter, required sections, shared resource existence, and unresolved draft markers.
+
+**Tech Stack:** Markdown skills, YAML-like frontmatter, Python 3 standard library validation, `unittest`, Git.
+
+---
+
+## File Structure
+
+Create or modify these files:
+
+- Create: `README.md` - repository overview, installation guidance, and skill index.
+- Create: `extensions/README.md` - future skill candidates and graduation criteria.
+- Create: `scripts/validate_research_skills.py` - structural validator for this repository.
+- Create: `tests/test_validate_research_skills.py` - unit tests for the validator.
+- Create: `shared/references/cs-ai-research-principles.md` - reusable CS/AI/engineering research principles.
+- Create: `shared/references/citation-integrity.md` - citation and evidence integrity rules.
+- Create: `shared/templates/topic-card.md`
+- Create: `shared/templates/proposal-outline.md`
+- Create: `shared/templates/paper-reading-notes.md`
+- Create: `shared/templates/literature-matrix.md`
+- Create: `shared/templates/method-taxonomy.md`
+- Create: `shared/templates/idea-gap-analysis.md`
+- Create: `shared/templates/experiment-plan.md`
+- Create: `shared/templates/experiment-comparison.md`
+- Create: `shared/templates/paper-organization.md`
+- Create: `shared/rubrics/topic-quality-rubric.md`
+- Create: `shared/rubrics/literature-quality-rubric.md`
+- Create: `shared/rubrics/experiment-quality-rubric.md`
+- Create: `shared/rubrics/paper-structure-rubric.md`
+- Create: `skills/research-topic-selection/SKILL.md`
+- Create: `skills/research-proposal/SKILL.md`
+- Create: `skills/research-literature-search/SKILL.md`
+- Create: `skills/research-paper-reading/SKILL.md`
+- Create: `skills/research-literature-matrix/SKILL.md`
+- Create: `skills/research-method-synthesis/SKILL.md`
+- Create: `skills/research-idea-mining/SKILL.md`
+- Create: `skills/research-experiment-design/SKILL.md`
+- Create: `skills/research-experiment-comparison/SKILL.md`
+- Create: `skills/research-paper-organization/SKILL.md`
+
+Each skill file must include these sections exactly:
+
+```markdown
+## Overview
+## When To Use
+## Do Not Use When
+## Workflow
+## Required Outputs
+## Quality Checks
+## Failure Modes
+```
+
+Each skill should also reference shared resources by relative path when relevant, for example `../../shared/templates/topic-card.md`.
+
+---
+
+### Task 1: Add Validator Tests First
+
+**Files:**
+- Create: `tests/test_validate_research_skills.py`
+
+- [ ] **Step 1: Create the tests directory**
+
+Run:
+
+```bash
+mkdir -p tests
+```
+
+Expected: directory exists and command exits 0.
+
+- [ ] **Step 2: Write validator tests**
+
+Create `tests/test_validate_research_skills.py` with:
+
+```python
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+import validate_research_skills as validator
+
+
+MINIMAL_BODY = """## Overview
+Brief overview.
+
+## When To Use
+- Use for a concrete research workflow.
+
+## Do Not Use When
+- Do not use for unrelated tasks.
+
+## Workflow
+1. Clarify inputs.
+2. Produce structured output.
+
+## Required Outputs
+- Structured artifact.
+
+## Quality Checks
+- Evidence is labeled.
+
+## Failure Modes
+- Missing inputs are made visible.
+"""
+
+
+def write_valid_repo(root: Path) -> None:
+    (root / "README.md").write_text("# Research Skills\n", encoding="utf-8")
+    (root / "extensions").mkdir(parents=True)
+    (root / "extensions" / "README.md").write_text("# Extensions\n", encoding="utf-8")
+
+    for relpath in validator.SHARED_FILES:
+        path = root / relpath
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"# {path.stem}\n\nReusable research resource.\n", encoding="utf-8")
+
+    for skill in validator.EXPECTED_SKILLS:
+        skill_dir = root / "skills" / skill
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        skill_text = (
+            "---\n"
+            f"name: {skill}\n"
+            "description: Use when a graduate researcher needs this specific research workflow.\n"
+            "---\n\n"
+            f"# {skill}\n\n"
+            f"{MINIMAL_BODY}"
+        )
+        (skill_dir / "SKILL.md").write_text(skill_text, encoding="utf-8")
+
+
+class ValidatorTests(unittest.TestCase):
+    def test_valid_minimal_repo_has_no_errors(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_valid_repo(root)
+            errors = validator.validate_repo(root)
+            self.assertEqual([], errors)
+
+    def test_missing_skill_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_valid_repo(root)
+            target = root / "skills" / validator.EXPECTED_SKILLS[0] / "SKILL.md"
+            target.unlink()
+            errors = validator.validate_repo(root)
+            self.assertTrue(any(str(target.relative_to(root)) in error for error in errors))
+
+    def test_description_must_start_with_use_when(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_valid_repo(root)
+            skill = validator.EXPECTED_SKILLS[0]
+            path = root / "skills" / skill / "SKILL.md"
+            text = path.read_text(encoding="utf-8")
+            path.write_text(text.replace("description: Use when", "description: Helps when"), encoding="utf-8")
+            errors = validator.validate_repo(root)
+            self.assertTrue(any("description must start with 'Use when'" in error for error in errors))
+
+    def test_unresolved_draft_marker_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_valid_repo(root)
+            skill = validator.EXPECTED_SKILLS[0]
+            path = root / "skills" / skill / "SKILL.md"
+            path.write_text(path.read_text(encoding="utf-8") + "\n" + ("TO" + "DO") + "\n", encoding="utf-8")
+            errors = validator.validate_repo(root)
+            self.assertTrue(any("unresolved draft marker" in error for error in errors))
+
+
+if __name__ == "__main__":
+    unittest.main()
+```
+
+- [ ] **Step 3: Run tests to verify the expected failure**
+
+Run:
+
+```bash
+python3 -m unittest tests/test_validate_research_skills.py
+```
+
+Expected: FAIL with an import error because `scripts/validate_research_skills.py` does not exist yet.
+
+- [ ] **Step 4: Commit the failing validator tests**
+
+Run:
+
+```bash
+git add tests/test_validate_research_skills.py
+git commit -m "test: add research skill validator tests"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 2: Implement the Validator
+
+**Files:**
+- Create: `scripts/validate_research_skills.py`
+
+- [ ] **Step 1: Create the scripts directory**
+
+Run:
+
+```bash
+mkdir -p scripts
+```
+
+Expected: directory exists and command exits 0.
+
+- [ ] **Step 2: Implement the validator**
+
+Create `scripts/validate_research_skills.py` with:
+
+```python
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+
+EXPECTED_SKILLS = [
+    "research-topic-selection",
+    "research-proposal",
+    "research-literature-search",
+    "research-paper-reading",
+    "research-literature-matrix",
+    "research-method-synthesis",
+    "research-idea-mining",
+    "research-experiment-design",
+    "research-experiment-comparison",
+    "research-paper-organization",
+]
+
+SHARED_FILES = [
+    "shared/references/cs-ai-research-principles.md",
+    "shared/references/citation-integrity.md",
+    "shared/templates/topic-card.md",
+    "shared/templates/proposal-outline.md",
+    "shared/templates/paper-reading-notes.md",
+    "shared/templates/literature-matrix.md",
+    "shared/templates/method-taxonomy.md",
+    "shared/templates/idea-gap-analysis.md",
+    "shared/templates/experiment-plan.md",
+    "shared/templates/experiment-comparison.md",
+    "shared/templates/paper-organization.md",
+    "shared/rubrics/topic-quality-rubric.md",
+    "shared/rubrics/literature-quality-rubric.md",
+    "shared/rubrics/experiment-quality-rubric.md",
+    "shared/rubrics/paper-structure-rubric.md",
+]
+
+REQUIRED_SKILL_SECTIONS = [
+    "## Overview",
+    "## When To Use",
+    "## Do Not Use When",
+    "## Workflow",
+    "## Required Outputs",
+    "## Quality Checks",
+    "## Failure Modes",
+]
+
+BANNED_MARKERS = [
+    "T" + "BD",
+    "TO" + "DO",
+    "FIX" + "ME",
+    "implement " + "later",
+    "fill in " + "details",
+    "\u5f85\u5b9a",
+    "\u5360\u4f4d",
+]
+
+NAME_RE = re.compile(r"^[a-z0-9-]+$")
+
+
+def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
+    if not text.startswith("---\n"):
+        return {}, text
+    end = text.find("\n---\n", 4)
+    if end == -1:
+        return {}, text
+    raw = text[4:end]
+    body = text[end + 5 :]
+    data: dict[str, str] = {}
+    for line in raw.splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        data[key.strip()] = value.strip().strip('"').strip("'")
+    return data, body
+
+
+def has_unresolved_marker(text: str) -> str | None:
+    lowered = text.lower()
+    for marker in BANNED_MARKERS:
+        if marker.lower() in lowered:
+            return marker
+    return None
+
+
+def validate_skill(root: Path, skill: str) -> list[str]:
+    errors: list[str] = []
+    path = root / "skills" / skill / "SKILL.md"
+    rel = path.relative_to(root)
+
+    if not path.exists():
+        return [f"Missing skill file: {rel}"]
+
+    text = path.read_text(encoding="utf-8")
+    marker = has_unresolved_marker(text)
+    if marker:
+        errors.append(f"{rel}: unresolved draft marker '{marker}'")
+
+    frontmatter, body = parse_frontmatter(text)
+    name = frontmatter.get("name", "")
+    description = frontmatter.get("description", "")
+
+    if name != skill:
+        errors.append(f"{rel}: frontmatter name must equal folder name '{skill}'")
+    if not NAME_RE.match(name):
+        errors.append(f"{rel}: name must use lowercase letters, digits, and hyphens")
+    if not description:
+        errors.append(f"{rel}: missing description")
+    elif not description.startswith("Use when"):
+        errors.append(f"{rel}: description must start with 'Use when'")
+
+    for section in REQUIRED_SKILL_SECTIONS:
+        if section not in body:
+            errors.append(f"{rel}: missing section {section}")
+
+    return errors
+
+
+def validate_repo(root: Path) -> list[str]:
+    errors: list[str] = []
+
+    for relpath in ["README.md", "extensions/README.md"]:
+        if not (root / relpath).exists():
+            errors.append(f"Missing repository file: {relpath}")
+
+    for relpath in SHARED_FILES:
+        path = root / relpath
+        if not path.exists():
+            errors.append(f"Missing shared file: {relpath}")
+            continue
+        marker = has_unresolved_marker(path.read_text(encoding="utf-8"))
+        if marker:
+            errors.append(f"{relpath}: unresolved draft marker '{marker}'")
+
+    for skill in EXPECTED_SKILLS:
+        errors.extend(validate_skill(root, skill))
+
+    return errors
+
+
+def main(argv: list[str]) -> int:
+    root = Path(argv[1]).resolve() if len(argv) > 1 else Path.cwd()
+    errors = validate_repo(root)
+    if errors:
+        print("Validation failed:")
+        for error in errors:
+            print(f"- {error}")
+        return 1
+    print("Validation passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+```
+
+- [ ] **Step 3: Run validator unit tests**
+
+Run:
+
+```bash
+python3 -m unittest tests/test_validate_research_skills.py
+```
+
+Expected: PASS with 4 tests.
+
+- [ ] **Step 4: Run validator against the current repository**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing missing README, shared files, extension README, and MVP skill files. This proves the validator detects the work that remains.
+
+- [ ] **Step 5: Commit validator implementation**
+
+Run:
+
+```bash
+git add scripts/validate_research_skills.py
+git commit -m "feat: add research skills validator"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 3: Add Shared References
+
+**Files:**
+- Create: `shared/references/cs-ai-research-principles.md`
+- Create: `shared/references/citation-integrity.md`
+
+- [ ] **Step 1: Create shared reference directory**
+
+Run:
+
+```bash
+mkdir -p shared/references
+```
+
+Expected: directory exists and command exits 0.
+
+- [ ] **Step 2: Create `cs-ai-research-principles.md`**
+
+Create `shared/references/cs-ai-research-principles.md` with these sections and rules:
+
+```markdown
+# CS/AI/Engineering Research Principles
+
+## Research Question
+
+A strong research question states the task, context, limitation, proposed direction, and evaluation target. It is narrower than a broad theme and stronger than an implementation wish.
+
+## Contribution Types
+
+- New problem framing
+- New method or architecture
+- New training, optimization, or inference strategy
+- New dataset, benchmark, protocol, or metric
+- New empirical finding, analysis, or failure diagnosis
+- New system design or engineering trade-off
+
+## Evidence Expectations
+
+- Claims about performance need metrics, baselines, and settings.
+- Claims about efficiency need hardware, input size, implementation details, and measurement method.
+- Claims about robustness need stress conditions and failure cases.
+- Claims about generality need datasets, domains, or tasks beyond the development setting.
+
+## Common CS/AI Paper Shape
+
+1. Problem and motivation
+2. Related work and gap
+3. Method or system
+4. Experimental setup
+5. Results and analysis
+6. Limitations and threats to validity
+
+## Reproducibility Signals
+
+- Dataset names, versions, splits, and preprocessing
+- Model and baseline configuration
+- Hyperparameters and search strategy
+- Random seeds and variance reporting
+- Hardware and runtime environment
+- Code, checkpoints, and artifact availability
+```
+
+- [ ] **Step 3: Create `citation-integrity.md`**
+
+Create `shared/references/citation-integrity.md` with:
+
+```markdown
+# Citation And Evidence Integrity
+
+## Evidence Labels
+
+Use one label for every research claim:
+
+- Verified from provided source
+- Retrieved from current search
+- Inferred from available context
+- Hypothesis requiring validation
+- Unknown or missing
+
+## Non-Negotiable Rules
+
+- Never fabricate citations, venues, years, authors, datasets, metrics, or benchmark rankings.
+- Do not treat paper titles, abstracts, blog posts, or leaderboards as interchangeable evidence.
+- Distinguish author claims from independent interpretation.
+- Mark missing metadata explicitly instead of guessing.
+- When search or source access is unavailable, say what cannot be verified.
+
+## Citation Checks
+
+Before using a citation in a final artifact, verify:
+
+- Title
+- Authors
+- Year
+- Venue or preprint source
+- DOI, arXiv ID, URL, or repository when available
+- The exact claim supported by the citation
+```
+
+- [ ] **Step 4: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing the remaining missing repository files, shared templates, shared rubrics, and skill files. The two shared references are no longer reported missing.
+
+- [ ] **Step 5: Commit shared references**
+
+Run:
+
+```bash
+git add shared/references/cs-ai-research-principles.md shared/references/citation-integrity.md
+git commit -m "docs: add shared research references"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 4: Add Shared Templates
+
+**Files:**
+- Create all files under `shared/templates/`
+
+- [ ] **Step 1: Create shared templates directory**
+
+Run:
+
+```bash
+mkdir -p shared/templates
+```
+
+Expected: directory exists and command exits 0.
+
+- [ ] **Step 2: Create `topic-card.md`**
+
+Use:
+
+```markdown
+# Topic Card
+
+## Candidate Topic
+
+## Research Question
+
+## Problem Context
+
+## Scope Boundary
+
+## Candidate Contribution
+
+## Required Evidence
+
+## Feasibility
+
+| Dimension | Assessment | Evidence | Risk |
+| --- | --- | --- | --- |
+| Literature access |  |  |  |
+| Data access |  |  |  |
+| Method feasibility |  |  |  |
+| Compute/resources |  |  |  |
+| Evaluation path |  |  |  |
+
+## Next Validation Steps
+```
+
+- [ ] **Step 3: Create `proposal-outline.md`**
+
+Use:
+
+```markdown
+# Proposal Outline
+
+## Title
+
+## Background And Significance
+
+## Research Problem
+
+## Research Objectives
+
+## Related Work Map
+
+## Proposed Method Or Technical Route
+
+## Experiment And Evaluation Plan
+
+## Feasibility Analysis
+
+## Risks And Mitigation
+
+## Work Plan
+
+| Phase | Time | Work | Deliverable |
+| --- | --- | --- | --- |
+| 1 |  |  |  |
+| 2 |  |  |  |
+| 3 |  |  |  |
+
+## Expected Contributions
+```
+
+- [ ] **Step 4: Create `paper-reading-notes.md`**
+
+Use:
+
+```markdown
+# Paper Reading Notes
+
+## Metadata
+
+| Field | Value |
+| --- | --- |
+| Title |  |
+| Authors |  |
+| Year |  |
+| Venue/Source |  |
+| Link/ID |  |
+
+## One-Paragraph Summary
+
+## Problem
+
+## Method
+
+## Results
+
+## Claimed Contributions
+
+## Assumptions
+
+## Limitations
+
+## Reproducibility Notes
+
+## Follow-Up Questions
+
+## Evidence Labels
+```
+
+- [ ] **Step 5: Create remaining templates**
+
+Create these files with the listed headings:
+
+`literature-matrix.md`
+
+```markdown
+# Literature Matrix
+
+| Paper | Problem | Method | Dataset/System | Metrics | Main Result | Limitation | Use In My Work | Evidence Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+## Theme Clusters
+
+## Chronological Development
+
+## Missing Evidence
+```
+
+`method-taxonomy.md`
+
+```markdown
+# Method Taxonomy
+
+| Method Family | Core Mechanism | Assumptions | Strengths | Weaknesses | Representative Papers | Best Use Cases |
+| --- | --- | --- | --- | --- | --- | --- |
+
+## Selection Guidance
+
+## Open Method Questions
+```
+
+`idea-gap-analysis.md`
+
+```markdown
+# Idea Gap Analysis
+
+| Gap | Evidence | Candidate Idea | Novelty | Feasibility | Risk | Validation Plan |
+| --- | --- | --- | --- | --- | --- | --- |
+
+## Strongest Candidate
+
+## Ideas To Reject
+
+## Evidence Needed Next
+```
+
+`experiment-plan.md`
+
+```markdown
+# Experiment Plan
+
+## Research Claim
+
+## Hypotheses
+
+| Hypothesis | Experiment | Metric | Expected Evidence |
+| --- | --- | --- | --- |
+
+## Dataset Or System Setup
+
+## Baselines
+
+## Metrics
+
+## Ablations
+
+## Controls And Confounders
+
+## Reproducibility Checklist
+```
+
+`experiment-comparison.md`
+
+```markdown
+# Experiment Comparison
+
+| Method | Setting | Dataset/System | Metric | Result | Fairness Notes | Interpretation |
+| --- | --- | --- | --- | --- | --- | --- |
+
+## Baseline Fairness
+
+## Ablation Interpretation
+
+## Threats To Validity
+
+## Result Narrative
+```
+
+`paper-organization.md`
+
+```markdown
+# Paper Organization
+
+## Core Claim
+
+## Contribution List
+
+## Section Outline
+
+| Section | Purpose | Key Claim | Evidence |
+| --- | --- | --- | --- |
+
+## Related Work Structure
+
+## Method Section Skeleton
+
+## Experiment Section Skeleton
+
+## Claim-Evidence Map
+```
+
+- [ ] **Step 6: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing the remaining missing repository files, shared rubrics, and skill files. The shared templates are no longer reported missing.
+
+- [ ] **Step 7: Commit shared templates**
+
+Run:
+
+```bash
+git add shared/templates
+git commit -m "docs: add shared research templates"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 5: Add Shared Rubrics
+
+**Files:**
+- Create all files under `shared/rubrics/`
+
+- [ ] **Step 1: Create shared rubrics directory**
+
+Run:
+
+```bash
+mkdir -p shared/rubrics
+```
+
+Expected: directory exists and command exits 0.
+
+- [ ] **Step 2: Create rubric files**
+
+Create `topic-quality-rubric.md`:
+
+```markdown
+# Topic Quality Rubric
+
+Score each item 0-2.
+
+| Criterion | 0 | 1 | 2 |
+| --- | --- | --- | --- |
+| Specificity | Broad theme | Partly scoped | Clear research question |
+| Novelty path | No gap | Plausible gap | Evidence-backed gap |
+| Feasibility | Resources unclear | Some resources known | Data, method, and evaluation path known |
+| Evaluation | No test | Informal check | Metrics and comparison plan |
+| Risk awareness | Hidden risks | Listed risks | Risks and mitigation |
+```
+
+Create `literature-quality-rubric.md`:
+
+```markdown
+# Literature Quality Rubric
+
+Score each item 0-2.
+
+| Criterion | 0 | 1 | 2 |
+| --- | --- | --- | --- |
+| Coverage | Random papers | Partial coverage | Search strategy documented |
+| Comparison | Summaries only | Some comparison | Cross-paper dimensions clear |
+| Evidence status | Unlabeled | Partly labeled | Missing and verified evidence marked |
+| Concept clarity | Paper names only | Some grouping | Method and problem clusters clear |
+```
+
+Create `experiment-quality-rubric.md`:
+
+```markdown
+# Experiment Quality Rubric
+
+Score each item 0-2.
+
+| Criterion | 0 | 1 | 2 |
+| --- | --- | --- | --- |
+| Claim alignment | Experiments disconnected | Partly aligned | Each experiment tests a claim |
+| Baseline fairness | Unfair or absent | Partial fairness | Settings and resources comparable |
+| Metric fit | Metrics mismatched | Some fit | Metrics directly support claims |
+| Ablations | Absent | Minimal | Mechanism-focused ablations |
+| Reproducibility | Unclear | Partly documented | Data, seeds, config, hardware noted |
+```
+
+Create `paper-structure-rubric.md`:
+
+```markdown
+# Paper Structure Rubric
+
+Score each item 0-2.
+
+| Criterion | 0 | 1 | 2 |
+| --- | --- | --- | --- |
+| Argument flow | Section list only | Some logic | Clear claim progression |
+| Related work | Paper summaries | Partial positioning | Gap and contribution positioning |
+| Method clarity | Implementation dump | Partial explanation | Assumptions, mechanism, and complexity clear |
+| Experiment narrative | Results listed | Some interpretation | Claims, evidence, and limitations connected |
+```
+
+- [ ] **Step 3: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing the remaining missing repository files and skill files. The shared rubrics are no longer reported missing.
+
+- [ ] **Step 4: Commit shared rubrics**
+
+Run:
+
+```bash
+git add shared/rubrics
+git commit -m "docs: add shared research rubrics"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 6: Add Topic And Proposal Skills
+
+**Files:**
+- Create: `skills/research-topic-selection/SKILL.md`
+- Create: `skills/research-proposal/SKILL.md`
+
+- [ ] **Step 1: Create skill directories**
+
+Run:
+
+```bash
+mkdir -p skills/research-topic-selection skills/research-proposal
+```
+
+Expected: directories exist and command exits 0.
+
+- [ ] **Step 2: Create `research-topic-selection/SKILL.md`**
+
+Use this frontmatter and body contract:
+
+```markdown
+---
+name: research-topic-selection
+description: Use when choosing, narrowing, evaluating, or comparing CS, AI, or engineering research topics, thesis directions, research questions, or project ideas
+---
+
+# Research Topic Selection
+
+## Overview
+
+Helps turn broad interests into scoped, evaluable research topics. The output should make the problem, boundary, contribution path, feasibility, and next validation steps explicit.
+
+## When To Use
+
+- The user has a broad research area and needs candidate topics.
+- The user has several possible directions and needs comparison.
+- The user needs to narrow a thesis, paper, or project idea.
+- The user wants to judge feasibility before committing to a topic.
+
+## Do Not Use When
+
+- The user already has a fixed topic and needs a proposal; use `research-proposal`.
+- The user mainly needs paper search strings; use `research-literature-search`.
+- The user asks for fabricated novelty or unsupported claims.
+
+## Workflow
+
+1. Identify the user's field, degree stage, constraints, available data, methods, compute, and timeline.
+2. Convert broad interests into 3-5 candidate research questions.
+3. For each candidate, state the problem, scope boundary, possible contribution, required evidence, and feasibility risks.
+4. Score candidates with `../../shared/rubrics/topic-quality-rubric.md`.
+5. Recommend the strongest candidate and list validation steps.
+
+## Required Outputs
+
+- Topic cards using `../../shared/templates/topic-card.md`.
+- Candidate comparison table.
+- Recommendation with evidence labels.
+- Next validation steps.
+
+## Quality Checks
+
+- The topic is narrower than a broad theme.
+- The research question can be evaluated or argued.
+- Data, method, compute, and evaluation access are explicit.
+- Weak topics are rejected with reasons.
+
+## Failure Modes
+
+- If constraints are missing, ask for the degree stage, timeline, data access, and target venue or thesis type.
+- If the topic is too broad, produce narrower variants rather than accepting it as-is.
+- If novelty cannot be assessed, label it as a hypothesis requiring validation.
+```
+
+- [ ] **Step 3: Create `research-proposal/SKILL.md`**
+
+Use this frontmatter and body contract:
+
+```markdown
+---
+name: research-proposal
+description: Use when preparing an opening report, thesis proposal, proposal defense, research plan, technical route, milestone plan, or feasibility analysis for CS, AI, or engineering research
+---
+
+# Research Proposal
+
+## Overview
+
+Helps structure a defensible proposal by connecting background, problem, objectives, method, experiment plan, feasibility, risks, milestones, and expected contributions.
+
+## When To Use
+
+- The user needs an opening report or thesis proposal.
+- The user has a topic and needs a technical route.
+- The user needs milestone planning, feasibility analysis, or proposal defense preparation.
+
+## Do Not Use When
+
+- The user still needs to choose a topic; use `research-topic-selection`.
+- The user only needs literature search strategy; use `research-literature-search`.
+- The user wants unsupported expected results.
+
+## Workflow
+
+1. Extract topic, target degree/program, constraints, available resources, and deadline.
+2. Build the proposal outline using `../../shared/templates/proposal-outline.md`.
+3. Connect background to research problem and objectives.
+4. Draft the technical route as stages with inputs, methods, outputs, and evaluation.
+5. Add feasibility, risks, mitigation, milestones, and expected contributions.
+6. Check consistency between problem, method, experiment, and contribution.
+
+## Required Outputs
+
+- Proposal outline.
+- Technical route.
+- Milestone table.
+- Feasibility and risk analysis.
+- Expected contribution list with evidence labels.
+
+## Quality Checks
+
+- The method addresses the stated problem.
+- The experiment plan can evaluate the objective.
+- Risks and mitigation are visible.
+- Expected contributions do not overclaim.
+
+## Failure Modes
+
+- If the topic is underspecified, ask for the research direction and intended output.
+- If the technical route is vague, rewrite it as ordered stages.
+- If evaluation is missing, add candidate datasets, metrics, or system tests.
+```
+
+- [ ] **Step 4: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing the remaining 8 missing skill files and missing repository files.
+
+- [ ] **Step 5: Commit topic and proposal skills**
+
+Run:
+
+```bash
+git add skills/research-topic-selection/SKILL.md skills/research-proposal/SKILL.md
+git commit -m "feat: add topic and proposal research skills"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 7: Add Literature Skills
+
+**Files:**
+- Create: `skills/research-literature-search/SKILL.md`
+- Create: `skills/research-paper-reading/SKILL.md`
+- Create: `skills/research-literature-matrix/SKILL.md`
+
+- [ ] **Step 1: Create skill directories**
+
+Run:
+
+```bash
+mkdir -p skills/research-literature-search skills/research-paper-reading skills/research-literature-matrix
+```
+
+Expected: directories exist and command exits 0.
+
+- [ ] **Step 2: Create literature search skill**
+
+Create `skills/research-literature-search/SKILL.md` with:
+
+```markdown
+---
+name: research-literature-search
+description: Use when planning literature search, keyword expansion, database selection, inclusion criteria, search logs, seed paper collection, or systematic search for CS, AI, or engineering topics
+---
+
+# Research Literature Search
+
+## Overview
+
+Creates a traceable search strategy for exploratory or systematic literature discovery. It separates search planning from unsupported paper claims.
+
+## When To Use
+
+- The user needs keywords, synonyms, and search strings.
+- The user needs databases or sources for CS/AI/engineering literature.
+- The user wants inclusion and exclusion criteria.
+- The user wants a search log or seed paper collection.
+
+## Do Not Use When
+
+- The user asks to deeply read one paper; use `research-paper-reading`.
+- The user already has multiple papers and needs organization; use `research-literature-matrix`.
+- The user asks for fabricated citations.
+
+## Workflow
+
+1. Clarify research question, field, target venues, time range, and paper types.
+2. Build keyword groups: task, method, domain, dataset/system, metric, and synonyms.
+3. Create search strings for broad search, targeted search, and backward/forward snowballing.
+4. Define inclusion and exclusion criteria.
+5. Create a search log with source, query, date, filters, and notes.
+6. If browsing/search tools are available, collect seed papers and label metadata confidence.
+
+## Required Outputs
+
+- Search question.
+- Keyword groups and synonyms.
+- Source/database plan.
+- Inclusion and exclusion criteria.
+- Search log table.
+- Seed paper list with evidence labels when sources are available.
+
+## Quality Checks
+
+- Search strings are reproducible.
+- Exploratory and systematic searches are not mixed silently.
+- Metadata confidence is labeled.
+- Missing source access is stated.
+
+## Failure Modes
+
+- If the topic is broad, ask for subfield, task, and target contribution type.
+- If no search access exists, provide strings and a log template instead of inventing papers.
+- If results are too noisy, split queries by task, method, and application domain.
+```
+
+- [ ] **Step 3: Create paper reading skill**
+
+Create `skills/research-paper-reading/SKILL.md` with:
+
+```markdown
+---
+name: research-paper-reading
+description: Use when analyzing a single paper, extracting structured reading notes, understanding method details, critiquing claims, or preparing implementation-oriented notes
+---
+
+# Research Paper Reading
+
+## Overview
+
+Turns one paper into grounded, structured notes that separate author claims, evidence, limitations, and reader interpretation.
+
+## When To Use
+
+- The user provides a paper, abstract, PDF text, URL, DOI, arXiv ID, or title.
+- The user wants method understanding, critique, or reproducibility notes.
+- The user wants notes for later literature review or implementation.
+
+## Do Not Use When
+
+- The user needs a search strategy; use `research-literature-search`.
+- The user has many papers to compare; use `research-literature-matrix`.
+- The user expects claims beyond the provided or retrieved paper text.
+
+## Workflow
+
+1. Verify what paper content is available and what metadata is known.
+2. Extract metadata and label missing fields.
+3. Summarize the problem, method, results, contributions, assumptions, and limitations.
+4. Separate direct paper claims from interpretation.
+5. Extract implementation and reproducibility details.
+6. Generate follow-up questions and related-reading needs.
+
+## Required Outputs
+
+- Reading notes using `../../shared/templates/paper-reading-notes.md`.
+- Claim-evidence list.
+- Limitation and assumption list.
+- Reproducibility notes.
+- Follow-up questions.
+
+## Quality Checks
+
+- Every claim is grounded in provided or retrieved text.
+- Author claims and reader interpretation are separate.
+- Novelty and results are not overstated.
+- Unknown metadata is marked.
+
+## Failure Modes
+
+- If only a title is available, ask for abstract, PDF, URL, DOI, or arXiv ID before deep reading.
+- If source access is partial, state which sections were not inspected.
+- If the paper is outside CS/AI/engineering, adapt the structure but preserve evidence labels.
+```
+
+- [ ] **Step 4: Create literature matrix skill**
+
+Create `skills/research-literature-matrix/SKILL.md` with:
+
+```markdown
+---
+name: research-literature-matrix
+description: Use when organizing multiple papers into a literature matrix, comparing methods, clustering themes, tracking reading status, or preparing related work for CS, AI, or engineering research
+---
+
+# Research Literature Matrix
+
+## Overview
+
+Organizes multiple papers into comparison-ready structures for synthesis, related work, gap analysis, and research planning.
+
+## When To Use
+
+- The user has several papers and needs a comparison table.
+- The user wants theme clusters or chronological development.
+- The user is preparing related work or a survey-style summary.
+
+## Do Not Use When
+
+- The user has one paper; use `research-paper-reading`.
+- The user needs search strings before collecting papers; use `research-literature-search`.
+- The user wants method taxonomy without paper-level organization; use `research-method-synthesis`.
+
+## Workflow
+
+1. List papers and mark available metadata.
+2. Choose matrix columns based on the research question.
+3. Fill comparable fields: problem, method, dataset/system, metrics, result, limitation, and relevance.
+4. Cluster papers by theme, method family, task, or chronology.
+5. Identify missing evidence and papers requiring deeper reading.
+6. Produce writing-ready related work angles.
+
+## Required Outputs
+
+- Literature matrix using `../../shared/templates/literature-matrix.md`.
+- Theme clusters.
+- Chronological development map.
+- Missing-evidence list.
+- Related-work positioning notes.
+
+## Quality Checks
+
+- The output compares papers rather than listing summaries.
+- Unknown fields remain visible.
+- Columns are stable enough for later writing.
+- Evidence status is labeled.
+
+## Failure Modes
+
+- If paper metadata is incomplete, create the matrix and mark missing fields.
+- If papers are too diverse, split them into clusters before comparison.
+- If the user asks for conclusions unsupported by the papers, label them as hypotheses.
+```
+
+- [ ] **Step 5: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing the remaining 5 missing skill files and missing repository files.
+
+- [ ] **Step 6: Commit literature skills**
+
+Run:
+
+```bash
+git add skills/research-literature-search/SKILL.md skills/research-paper-reading/SKILL.md skills/research-literature-matrix/SKILL.md
+git commit -m "feat: add literature research skills"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 8: Add Method And Idea Skills
+
+**Files:**
+- Create: `skills/research-method-synthesis/SKILL.md`
+- Create: `skills/research-idea-mining/SKILL.md`
+
+- [ ] **Step 1: Create skill directories**
+
+Run:
+
+```bash
+mkdir -p skills/research-method-synthesis skills/research-idea-mining
+```
+
+Expected: directories exist and command exits 0.
+
+- [ ] **Step 2: Create method synthesis skill**
+
+Create `skills/research-method-synthesis/SKILL.md` with:
+
+```markdown
+---
+name: research-method-synthesis
+description: Use when organizing research methods, model families, algorithms, pipelines, theoretical frameworks, or technical approaches across CS, AI, or engineering papers
+---
+
+# Research Method Synthesis
+
+## Overview
+
+Synthesizes methods by mechanism, assumptions, strengths, weaknesses, and applicable scenarios rather than by paper name alone.
+
+## When To Use
+
+- The user wants to understand a family of methods.
+- The user needs a taxonomy of models, algorithms, systems, or pipelines.
+- The user needs method selection guidance for a research problem.
+
+## Do Not Use When
+
+- The user needs paper-level comparison first; use `research-literature-matrix`.
+- The user needs experiment planning; use `research-experiment-design`.
+- The user asks for unsupported superiority claims.
+
+## Workflow
+
+1. Identify the target problem and method scope.
+2. Group methods by core mechanism or assumption.
+3. For each group, summarize inputs, process, outputs, strengths, weaknesses, and evidence.
+4. Compare method families across use cases and constraints.
+5. Produce method selection guidance and open technical questions.
+
+## Required Outputs
+
+- Method taxonomy using `../../shared/templates/method-taxonomy.md`.
+- Mechanism and assumption table.
+- Strength and weakness comparison.
+- Use-case guidance.
+- Open method questions.
+
+## Quality Checks
+
+- Method families are grouped by principle.
+- Mechanism, implementation detail, and empirical effect are separate.
+- Evidence source and inference are labeled.
+- Selection guidance includes constraints.
+
+## Failure Modes
+
+- If methods are mixed across unrelated tasks, split the taxonomy by task.
+- If evidence is thin, state which comparisons are inferred.
+- If the user wants implementation details, identify which papers or codebases need inspection.
+```
+
+- [ ] **Step 3: Create idea mining skill**
+
+Create `skills/research-idea-mining/SKILL.md` with:
+
+```markdown
+---
+name: research-idea-mining
+description: Use when finding innovation points, research gaps, thesis ideas, contribution candidates, improvement directions, or novelty-feasibility trade-offs from literature and methods
+---
+
+# Research Idea Mining
+
+## Overview
+
+Turns literature, limitations, method comparisons, and experimental gaps into candidate research ideas with novelty, feasibility, risk, and validation paths.
+
+## When To Use
+
+- The user wants innovation points for a thesis, paper, or project.
+- The user has literature notes and needs gap analysis.
+- The user wants to compare candidate contributions.
+
+## Do Not Use When
+
+- The user has not gathered enough context for any evidence-backed gap; use `research-literature-search` or `research-literature-matrix`.
+- The user needs experiment details for an existing idea; use `research-experiment-design`.
+- The user asks for guaranteed novelty.
+
+## Workflow
+
+1. Identify the evidence base: papers, methods, datasets, experiments, and limitations.
+2. Extract gaps in problem framing, method, data, evaluation, system constraints, or theory.
+3. Generate candidate ideas tied to specific gaps.
+4. Score novelty, feasibility, risk, and validation cost.
+5. Reject weak ideas with reasons.
+6. Recommend the strongest idea and first validation experiment.
+
+## Required Outputs
+
+- Gap analysis using `../../shared/templates/idea-gap-analysis.md`.
+- Candidate innovation matrix.
+- Strongest candidate recommendation.
+- Rejected idea list.
+- Validation plan.
+
+## Quality Checks
+
+- Each idea maps to a concrete gap.
+- Each idea has an evaluation route.
+- Claims about novelty are labeled as verified, inferred, or requiring validation.
+- Vague improvements are rewritten as mechanism-level hypotheses.
+
+## Failure Modes
+
+- If the evidence base is weak, produce a gap inventory and reading plan first.
+- If ideas are too broad, narrow them by task, data, metric, or constraint.
+- If an idea cannot be evaluated, mark it as weak and explain why.
+```
+
+- [ ] **Step 4: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing the remaining 3 missing skill files and missing repository files.
+
+- [ ] **Step 5: Commit method and idea skills**
+
+Run:
+
+```bash
+git add skills/research-method-synthesis/SKILL.md skills/research-idea-mining/SKILL.md
+git commit -m "feat: add method and idea research skills"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 9: Add Experiment Skills
+
+**Files:**
+- Create: `skills/research-experiment-design/SKILL.md`
+- Create: `skills/research-experiment-comparison/SKILL.md`
+
+- [ ] **Step 1: Create skill directories**
+
+Run:
+
+```bash
+mkdir -p skills/research-experiment-design skills/research-experiment-comparison
+```
+
+Expected: directories exist and command exits 0.
+
+- [ ] **Step 2: Create experiment design skill**
+
+Create `skills/research-experiment-design/SKILL.md` with:
+
+```markdown
+---
+name: research-experiment-design
+description: Use when designing CS, AI, or engineering experiments, hypotheses, datasets, metrics, protocols, baselines, controls, ablations, or reproducibility plans
+---
+
+# Research Experiment Design
+
+## Overview
+
+Designs experiments that test research claims with aligned hypotheses, data, baselines, metrics, ablations, controls, and reproducibility details.
+
+## When To Use
+
+- The user has a method or idea and needs an experiment plan.
+- The user needs datasets, metrics, baselines, controls, or ablations.
+- The user wants to check whether experiments support specific claims.
+
+## Do Not Use When
+
+- The user is comparing completed results; use `research-experiment-comparison`.
+- The user still needs an idea; use `research-idea-mining`.
+- The user asks for invented results.
+
+## Workflow
+
+1. State the research claim and hypotheses.
+2. Map each hypothesis to experiments, metrics, and expected evidence.
+3. Define datasets, systems, splits, preprocessing, or workloads.
+4. Choose fair baselines and controls.
+5. Design ablations around mechanisms.
+6. Add reproducibility details and failure-case analysis.
+
+## Required Outputs
+
+- Experiment plan using `../../shared/templates/experiment-plan.md`.
+- Hypothesis-experiment-metric table.
+- Baseline and ablation plan.
+- Confounder and failure-case list.
+- Reproducibility checklist.
+
+## Quality Checks
+
+- Each experiment answers a research question.
+- Metrics match claims.
+- Baselines are fair and justified.
+- Reproducibility details are explicit.
+
+## Failure Modes
+
+- If the claim is unclear, rewrite it before designing experiments.
+- If baselines are missing, propose categories and required implementation details.
+- If data access is uncertain, list alternative datasets or synthetic/system tests.
+```
+
+- [ ] **Step 3: Create experiment comparison skill**
+
+Create `skills/research-experiment-comparison/SKILL.md` with:
+
+```markdown
+---
+name: research-experiment-comparison
+description: Use when comparing experiments, baselines, ablations, metrics, tables, completed results, fairness, significance, or result narratives in CS, AI, or engineering research
+---
+
+# Research Experiment Comparison
+
+## Overview
+
+Compares completed or planned experimental results with attention to fairness, settings, metrics, statistical meaning, practical meaning, and narrative claims.
+
+## When To Use
+
+- The user has result tables and needs interpretation.
+- The user wants baseline fairness checks.
+- The user needs ablation analysis or result narrative.
+- The user is preparing an experiment section.
+
+## Do Not Use When
+
+- The user needs to design experiments before results exist; use `research-experiment-design`.
+- The user needs paper-level literature comparison; use `research-literature-matrix`.
+- The user wants results strengthened beyond the data.
+
+## Workflow
+
+1. Extract methods, settings, datasets or systems, metrics, and results.
+2. Check whether comparisons are fair under shared settings.
+3. Separate statistical, practical, and narrative significance.
+4. Interpret ablations by mechanism.
+5. Identify threats to validity and missing controls.
+6. Draft a restrained result narrative.
+
+## Required Outputs
+
+- Comparison table using `../../shared/templates/experiment-comparison.md`.
+- Baseline fairness checklist.
+- Ablation interpretation.
+- Threats-to-validity notes.
+- Result narrative.
+
+## Quality Checks
+
+- Comparisons use consistent settings where possible.
+- Missing controls are flagged.
+- Metric differences are not overclaimed.
+- Result narrative matches the table.
+
+## Failure Modes
+
+- If settings differ, compare cautiously and state the mismatch.
+- If variance or statistical evidence is missing, mark significance as unknown.
+- If a baseline is unfair, explain the direction of bias.
+```
+
+- [ ] **Step 4: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing the remaining paper organization skill file and missing repository files.
+
+- [ ] **Step 5: Commit experiment skills**
+
+Run:
+
+```bash
+git add skills/research-experiment-design/SKILL.md skills/research-experiment-comparison/SKILL.md
+git commit -m "feat: add experiment research skills"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 10: Add Paper Organization Skill
+
+**Files:**
+- Create: `skills/research-paper-organization/SKILL.md`
+
+- [ ] **Step 1: Create skill directory**
+
+Run:
+
+```bash
+mkdir -p skills/research-paper-organization
+```
+
+Expected: directory exists and command exits 0.
+
+- [ ] **Step 2: Create paper organization skill**
+
+Create `skills/research-paper-organization/SKILL.md` with:
+
+```markdown
+---
+name: research-paper-organization
+description: Use when organizing a paper, thesis chapter, related work, method section, experiment section, contribution narrative, claim-evidence map, or article structure
+---
+
+# Research Paper Organization
+
+## Overview
+
+Builds a paper or chapter structure around argument flow, contribution positioning, method clarity, experiment evidence, and claim-evidence alignment.
+
+## When To Use
+
+- The user needs a paper or thesis chapter outline.
+- The user wants to organize Related Work, Method, or Experiments.
+- The user needs a contribution narrative or claim-evidence map.
+
+## Do Not Use When
+
+- The user needs experiment design before writing; use `research-experiment-design`.
+- The user needs reviewer response or submission formatting; reserve that for future extension skills.
+- The user wants unsupported claims inserted into the paper.
+
+## Workflow
+
+1. Identify target artifact: conference paper, journal paper, thesis chapter, or report.
+2. State the core claim and contribution list.
+3. Build section-level argument flow.
+4. Structure related work around gaps and positioning.
+5. Structure method around assumptions, mechanism, and implementation.
+6. Structure experiments around claims, evidence, and limitations.
+7. Check the outline with `../../shared/rubrics/paper-structure-rubric.md`.
+
+## Required Outputs
+
+- Paper organization template using `../../shared/templates/paper-organization.md`.
+- Section outline.
+- Related Work structure.
+- Method section skeleton.
+- Experiment section skeleton.
+- Claim-evidence map.
+
+## Quality Checks
+
+- The structure follows the argument.
+- Each claim has planned evidence.
+- Related work positions the contribution.
+- Limitations and threats to validity are visible.
+
+## Failure Modes
+
+- If the contribution is unclear, ask for the problem, method, and strongest evidence.
+- If the outline is generic, rewrite sections around claims and evidence.
+- If evidence is missing, mark the claim as unsupported and list what experiment or citation is needed.
+```
+
+- [ ] **Step 3: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: FAIL listing missing repository files only.
+
+- [ ] **Step 4: Commit paper organization skill**
+
+Run:
+
+```bash
+git add skills/research-paper-organization/SKILL.md
+git commit -m "feat: add paper organization research skill"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 11: Add Repository README And Extensions Documentation
+
+**Files:**
+- Create: `README.md`
+- Create: `extensions/README.md`
+
+- [ ] **Step 1: Create extension directory**
+
+Run:
+
+```bash
+mkdir -p extensions/future-skills
+```
+
+Expected: directory exists and command exits 0.
+
+- [ ] **Step 2: Create `README.md`**
+
+Create `README.md` with:
+
+```markdown
+# Research Skills
+
+A GitHub-ready collection of independent skills for CS, AI, and engineering graduate research.
+
+## MVP Skills
+
+| Skill | Use When |
+| --- | --- |
+| `research-topic-selection` | Choosing, narrowing, or comparing research topics |
+| `research-proposal` | Preparing opening reports, proposal defenses, or research plans |
+| `research-literature-search` | Planning literature search and search logs |
+| `research-paper-reading` | Reading and critiquing a single paper |
+| `research-literature-matrix` | Organizing and comparing multiple papers |
+| `research-method-synthesis` | Synthesizing method families and technical approaches |
+| `research-idea-mining` | Finding gaps, innovation points, and candidate contributions |
+| `research-experiment-design` | Designing experiments, baselines, metrics, and ablations |
+| `research-experiment-comparison` | Comparing results, baselines, ablations, and claims |
+| `research-paper-organization` | Organizing paper sections and claim-evidence flow |
+
+## Structure
+
+```text
+skills/      Independent installable skills
+shared/      Templates, rubrics, and reusable references
+extensions/  Future skill candidates
+scripts/     Repository validation tools
+tests/       Validator tests
+```
+
+## Installation
+
+Copy any directory under `skills/` into your agent's skills directory. Each skill is independent. Shared templates and rubrics are included in this repository so users can reuse the Markdown artifacts directly.
+
+## Integrity
+
+These skills are designed to support research judgment, not replace it. They require evidence labels for research claims and prohibit fabricated citations, datasets, metrics, and results.
+
+## Validation
+
+Run:
+
+```bash
+python3 -m unittest tests/test_validate_research_skills.py
+python3 scripts/validate_research_skills.py
+```
+```
+
+- [ ] **Step 3: Create `extensions/README.md`**
+
+Create `extensions/README.md` with:
+
+```markdown
+# Extensions
+
+This directory reserves space for future research skills after the MVP stabilizes.
+
+## Candidate Skills
+
+| Candidate | Purpose |
+| --- | --- |
+| `research-review-response` | Reviewer comments and response letters |
+| `research-submission-check` | Submission checklists and venue formatting |
+| `research-thesis-writing` | Thesis chapter planning and long-form structure |
+| `research-reproducibility` | Code, environment, seed, and artifact checks |
+| `research-figure-planning` | Figure/table narrative and visual argument design |
+| `research-poster-slides` | Posters and defense slide planning |
+| `research-grant-proposal` | Funding proposal and project application writing |
+
+## Graduation Criteria
+
+A candidate skill moves to `skills/` only when it has:
+
+- Clear trigger conditions.
+- A focused workflow.
+- Required outputs.
+- Quality checks.
+- Failure modes.
+- A validation scenario.
+```
+
+- [ ] **Step 4: Run validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: PASS with `Validation passed.`
+
+- [ ] **Step 5: Commit repository docs**
+
+Run:
+
+```bash
+git add README.md extensions/README.md
+git commit -m "docs: add repository guide and extensions"
+```
+
+Expected: commit succeeds.
+
+---
+
+### Task 12: Final Verification And Cleanup
+
+**Files:**
+- Modify only files that fail validation or contain clear consistency errors.
+
+- [ ] **Step 1: Run unit tests**
+
+Run:
+
+```bash
+python3 -m unittest tests/test_validate_research_skills.py
+```
+
+Expected: PASS with 4 tests.
+
+- [ ] **Step 2: Run repository validator**
+
+Run:
+
+```bash
+python3 scripts/validate_research_skills.py
+```
+
+Expected: PASS with `Validation passed.`
+
+- [ ] **Step 3: Scan for unresolved draft markers**
+
+Run:
+
+```bash
+rg -n "T.?BD|TO.?DO|FIX.?ME|implement[[:space:]]+later|fill[[:space:]]+in[[:space:]]+details|\x{5f85}\x{5b9a}|\x{5360}\x{4f4d}" README.md extensions skills shared docs
+```
+
+Expected: no output and exit code 1.
+
+- [ ] **Step 4: Check Git status**
+
+Run:
+
+```bash
+git status --short
+```
+
+Expected: no output.
+
+- [ ] **Step 5: Review spec coverage**
+
+Check that the implementation satisfies these spec requirements:
+
+- 10 independently installable skills exist under `skills/`.
+- Shared templates, rubrics, and references exist under `shared/`.
+- Future skill candidates are documented under `extensions/`.
+- Research integrity rules are documented.
+- Each skill has trigger-focused frontmatter and the required sections.
+- Validation commands pass.
+
+- [ ] **Step 6: Commit final fixes only if needed**
+
+If Step 1-5 required corrections, run:
+
+```bash
+git add README.md extensions skills shared scripts tests docs
+git commit -m "chore: finish research skills mvp validation"
+```
+
+Expected: commit succeeds when corrections exist. If no corrections exist, skip this step.
+
+---
+
+## Self-Review Checklist
+
+- Spec coverage: Tasks 1-2 cover validation, Tasks 3-5 cover shared resources, Tasks 6-10 cover all 10 MVP skills, Task 11 covers README and extensions, Task 12 covers final verification.
+- Required MVP skills: all 10 approved skill names are included.
+- Required shared files: every file named in the design spec is included.
+- Trigger descriptions: every skill description starts with `Use when`.
+- Validation: unit tests, repository validator, unresolved marker scan, and Git status are included.
